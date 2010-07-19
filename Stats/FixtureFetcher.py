@@ -4,27 +4,7 @@ from lxml import etree
 import re
 import calendar
 import datetime
-
-teams = [(359, 'Arsenal'),
-(362, 'Aston Villa'),
-(392, 'Birmingham City'),
-(365, 'Blackburn Rovers'),
-(358, 'Bolton Wanderers'),
-(346, 'Blackpool'),
-(363, 'Chelsea'),
-(368, 'Everton'),
-(370, 'Fulham'),
-(364, 'Liverpool'),
-(382, 'Manchester City'),
-(360, 'Manchester United'),
-(361, 'Newcastle United'),
-(336, 'Stoke City'),
-(366, 'Sunderland'),
-(367, 'Tottenham Hotspur'),
-(371, 'West Ham United'),
-(350, 'Wigan Athletic'),
-(383, 'West Bromwich Albion'),
-(380, 'Wolverhampton Wanderers')]
+from Teams import teams
 
 
 class Fixture:
@@ -136,7 +116,7 @@ class FixtureFetcher:
         return fixtures
                 
 fp = FixtureFetcher()
-fixtures = fp.get_fixtures(2005,False)
+fixtures = fp.get_fixtures(2005)
 print "There are %(count)d fixtures" % {"count" : len(fixtures)}
 fixtures = sorted(fixtures, lambda x, y: cmp(x.home_team, y.home_team))
 i = 0
