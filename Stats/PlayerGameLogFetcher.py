@@ -47,3 +47,4 @@ class PlayerGameLogFetcher:
         If use_local is True, then if they exist, the shelved player games for the year will be returned 
         without resorting to re-parsing the fixtures for each team.
         """
+        

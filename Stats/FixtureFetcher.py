@@ -1,11 +1,9 @@
-import shelve
-import urllib
+import calendar
 from lxml import etree
 import re
-import calendar
 import datetime
 from Teams import teams
-
+import YearlyStatsFetcher
 
 class Fixture:
     """
@@ -26,7 +24,7 @@ class Fixture:
             return "(Empty)"
 
 
-class FixtureFetcher:
+class FixtureFetcher(YearlyStatsFetcher.YearlyStatsFetcher):
     """
     Retrieves a list of leauge fixtures (no cups/european tournaments) for the specified season.
     Fixtures are parsed from the espn fixtures pages, where urls are of the form: 
@@ -47,38 +45,25 @@ class FixtureFetcher:
         without resorting to re-parsing the fixtures for each team.
         """
         
-        #preconditions
-        if year is None or year < 2005 or year > 2010:
-            raise Exception("for_year parameter must be a value between 2005 and 2010")
-        #get fixtures for year 
-        shelf = shelve.open("fixtures.shelf")
-        fixtures = None
-        if str(year) in shelf and use_local:
-            fixtures = shelf[str(year)]
-        else:
-            fixtures = self.__parse_fixtures(year)
-            shelf[str(year)] = fixtures
-            shelf.close()
-        return fixtures
+        return self._YearlyStatsFetcher__get_stats(year, use_local)
         
     
-    def __parse_fixtures(self, year):
-        """ Gets all leauge fixtures for a specified year from the espn team fixture pages """
-        
-        fixtures = []
+    def _YearlyStatsFetcher__get_stat_page_urls(self, year):
+        urls = []
         for team in teams:
             team_id = team[0]
-            team_url = "http://soccernet.espn.go.com/team/results?id=" + str(team_id) + "&season=" + str(year) 
-            print "Parsing url: " + team_url
-            f = urllib.urlopen(team_url)
-            s = f.read()
-            fixtures.extend(self.__parse_fixture_page(s, year, team_id))
-        return fixtures
+            urls.append("http://soccernet.espn.go.com/team/results?id=" + str(team_id) + "&season=" + str(year))
+        return urls
+           
+    
+    def _YearlyStatsFetcher__get_shelf_file_name(self):
+        return "fixtures.shelf"
             
     
-    def __parse_fixture_page(self, html, year, team_id):
+    def _YearlyStatsFetcher__parse_stats_page(self, html, year, url):
         """ Parses the html of a espn fixture page, returning all league fixtures on the page """
         
+        print "Parsing url: " + url
         dom = etree.HTML(html)
         rows = dom .xpath("//table[@class='tablehead']/tr")
         
@@ -112,11 +97,11 @@ class FixtureFetcher:
                 #month/year column data, example value = "Aug. '09". Must fetch the month abreviation and convert that into the numeric month value.
                 monthAbbr = cells[0].text[0:3]
                 current_month = list(calendar.month_abbr).index(monthAbbr)
-                
         return fixtures
+    
                 
 fp = FixtureFetcher()
-fixtures = fp.get_fixtures(2005)
+fixtures = fp.get_fixtures(2005, False)
 print "There are %(count)d fixtures" % {"count" : len(fixtures)}
 fixtures = sorted(fixtures, lambda x, y: cmp(x.home_team, y.home_team))
 i = 0
